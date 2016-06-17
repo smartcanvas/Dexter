@@ -20,6 +20,10 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.provider.Settings;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.view.View;
@@ -30,13 +34,15 @@ import java.util.List;
 public class RationaleSnackbarOnAnyDeniedMultiplePermissionsListener extends SnackbarOnAnyDeniedMultiplePermissionsListener {
 
   protected final Runnable runOnGranted;
+  protected final Runnable runOnDenied;
 
   protected RationaleSnackbarOnAnyDeniedMultiplePermissionsListener(ViewGroup rootView, String text,
       String buttonText, View.OnClickListener onButtonClickListener, Snackbar.Callback snackbarCallback, SnackbarOnAnyDeniedMultiplePermissionsListener.SnackbarFactory factory,
-      Runnable runOnGranted) {
+      Runnable runOnGranted, Runnable runOnDenied) {
     super(rootView, text, buttonText, onButtonClickListener, snackbarCallback, factory);
 
     this.runOnGranted = runOnGranted;
+    this.runOnDenied = runOnDenied;
   }
 
   @Override public void onPermissionsChecked(MultiplePermissionsReport report) {
@@ -47,7 +53,11 @@ public class RationaleSnackbarOnAnyDeniedMultiplePermissionsListener extends Sna
         runOnGranted.run();
       }
     } else {
-      showSnackbar();
+      if (runOnDenied != null) {
+        runOnDenied.run();
+      } else {
+        showSnackbar();
+      }
     }
   }
 
@@ -57,11 +67,19 @@ public class RationaleSnackbarOnAnyDeniedMultiplePermissionsListener extends Sna
     token.continuePermissionRequest();
   }
 
-  public static class Builder extends SnackbarOnAnyDeniedMultiplePermissionsListener.Builder {
+  public static class Builder {
+    protected final ViewGroup rootView;
+    protected final String text;
+    protected String buttonText;
+    protected View.OnClickListener onClickListener;
+    protected Snackbar.Callback snackbarCallback;
+    protected SnackbarFactory snackbarFactory;
     protected Runnable runOnGranted;
+    protected Runnable runOnDenied;
 
     protected Builder(ViewGroup rootView, String text) {
-      super(rootView, text);
+      this.rootView = rootView;
+      this.text = text;
     }
 
     public static Builder with(ViewGroup rootView, String text) {
@@ -72,13 +90,79 @@ public class RationaleSnackbarOnAnyDeniedMultiplePermissionsListener extends Sna
       return Builder.with(rootView, rootView.getContext().getString(textResourceId));
     }
 
-    public Builder withRunnableOnGranted(Runnable runnableOnGranted) {
-      this.runOnGranted = runnableOnGranted;
+    /**
+     * Adds a text button with the provided click listener
+     */
+    public Builder withButton(String buttonText, View.OnClickListener onClickListener) {
+      this.buttonText = buttonText;
+      this.onClickListener = onClickListener;
       return this;
     }
 
+    /**
+     * Adds a text button with the provided click listener
+     */
+    public Builder withButton(@StringRes int buttonTextResourceId,
+        View.OnClickListener onClickListener) {
+      return withButton(rootView.getContext().getString(buttonTextResourceId), onClickListener);
+    }
+
+    /**
+     * Adds a button that opens the application settings when clicked
+     */
+    public Builder withOpenSettingsButton(String buttonText) {
+      this.buttonText = buttonText;
+      this.onClickListener = new View.OnClickListener() {
+        @Override public void onClick(View v) {
+          Context context = rootView.getContext();
+          Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                  Uri.parse("package:" + context.getPackageName()));
+          myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
+          myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+          context.startActivity(myAppSettings);
+        }
+      };
+      return this;
+    }
+
+    /**
+     * Adds a button that opens the application settings when clicked
+     */
+    public Builder withOpenSettingsButton(@StringRes int buttonTextResourceId) {
+      return withOpenSettingsButton(rootView.getContext().getString(buttonTextResourceId));
+    }
+
+    /**
+     * Adds a callback to handle the snackbar {@code onDismissed} and {@code onShown} events.
+     */
+    public Builder withCallback(Snackbar.Callback callback) {
+      this.snackbarCallback = callback;
+      return this;
+    }
+
+    /**
+     * Adds a factor to handle the snackbar.
+     */
+    public Builder withSnackbarFactory(SnackbarFactory factory) {
+      this.snackbarFactory = factory;
+      return this;
+    }
+
+    public Builder withRunnableOnGranted(Runnable runOnGranted) {
+      this.runOnGranted = runOnGranted;
+      return this;
+    }
+
+    public Builder withRunnableOnDenied(Runnable runOnDenied) {
+      this.runOnDenied = runOnDenied;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link SnackbarOnAnyDeniedMultiplePermissionsListener}
+     */
     public RationaleSnackbarOnAnyDeniedMultiplePermissionsListener build() {
-      return new RationaleSnackbarOnAnyDeniedMultiplePermissionsListener(rootView, text, buttonText, onClickListener, snackbarCallback, snackbarFactory, runOnGranted);
+      return new RationaleSnackbarOnAnyDeniedMultiplePermissionsListener(rootView, text, buttonText, onClickListener, snackbarCallback, snackbarFactory, runOnGranted, runOnDenied);
     }
   }
 }

@@ -142,6 +142,7 @@ public class DialogOnDeniedPermissionListener extends EmptyPermissionListener {
       String title = this.title == null ? "" : this.title;
       String message = this.message == null ? "" : this.message;
       String buttonText = this.buttonText == null ? "" : this.buttonText;
+
       return new DialogOnDeniedPermissionListener(context, title, message, buttonText, icon, dialogFactory);
     }
   }

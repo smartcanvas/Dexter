@@ -23,16 +23,21 @@ import com.karumi.dexter.listener.PermissionRequest;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.StringRes;
 
 public class RationaleDialogOnDeniedPermissionListener extends DialogOnDeniedPermissionListener {
 
   protected final Runnable runOnGranted;
+  protected final Runnable runOnDenied;
 
   protected RationaleDialogOnDeniedPermissionListener(Context context, String title, String message,
-      String positiveButtonText, Drawable icon, DialogFactory factory, Runnable runOnGranted) {
+      String positiveButtonText, Drawable icon, DialogFactory factory,
+      Runnable runOnGranted, Runnable runOnDenied) {
     super(context, title, message, positiveButtonText, icon, factory);
 
     this.runOnGranted = runOnGranted;
+    this.runOnDenied = runOnDenied;
   }
 
   @Override public void onPermissionGranted(PermissionGrantedResponse response) {
@@ -46,7 +51,11 @@ public class RationaleDialogOnDeniedPermissionListener extends DialogOnDeniedPer
   @Override public void onPermissionDenied(PermissionDeniedResponse response) {
     super.onPermissionDenied(response);
 
-    showDialog();
+    if (runOnDenied != null) {
+      runOnDenied.run();
+    } else {
+      showDialog();
+    }
   }
 
   @Override public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
@@ -55,16 +64,67 @@ public class RationaleDialogOnDeniedPermissionListener extends DialogOnDeniedPer
     token.continuePermissionRequest();
   }
 
-  public static class Builder extends DialogOnDeniedPermissionListener.Builder {
-
+  public static class Builder {
+    protected final Context context;
+    protected String title;
+    protected String message;
+    protected String buttonText;
+    protected Drawable icon;
+    protected DialogFactory dialogFactory;
     protected Runnable runOnGranted;
+    protected Runnable runOnDenied;
 
     protected Builder(Context context) {
-      super(context);
+      this.context = context;
     }
 
     public static Builder withContext(Context context) {
       return new Builder(context);
+    }
+
+    public Builder withTitle(String title) {
+      this.title = title;
+      return this;
+    }
+
+    public Builder withTitle(@StringRes int resId) {
+      this.title = context.getString(resId);
+      return this;
+    }
+
+    public Builder withMessage(String message) {
+      this.message = message;
+      return this;
+    }
+
+    public Builder withMessage(@StringRes int resId) {
+      this.message = context.getString(resId);
+      return this;
+    }
+
+    public Builder withButtonText(String buttonText) {
+      this.buttonText = buttonText;
+      return this;
+    }
+
+    public Builder withButtonText(@StringRes int resId) {
+      this.buttonText = context.getString(resId);
+      return this;
+    }
+
+    public Builder withIcon(Drawable icon) {
+      this.icon = icon;
+      return this;
+    }
+
+    public Builder withIcon(@DrawableRes int resId) {
+      this.icon = context.getResources().getDrawable(resId);
+      return this;
+    }
+
+    public Builder withDialogFactory(DialogFactory factory) {
+      this.dialogFactory = factory;
+      return this;
     }
 
     public Builder withRunnableOnGranted(Runnable runOnGranted) {
@@ -72,11 +132,17 @@ public class RationaleDialogOnDeniedPermissionListener extends DialogOnDeniedPer
       return this;
     }
 
+    public Builder withRunnableOnDenied(Runnable runOnDenied) {
+      this.runOnDenied = runOnDenied;
+      return this;
+    }
+
     public RationaleDialogOnDeniedPermissionListener build() {
       String title = this.title == null ? "" : this.title;
       String message = this.message == null ? "" : this.message;
       String buttonText = this.buttonText == null ? "" : this.buttonText;
-      return new RationaleDialogOnDeniedPermissionListener(context, title, message, buttonText, icon, dialogFactory, runOnGranted);
+
+      return new RationaleDialogOnDeniedPermissionListener(context, title, message, buttonText, icon, dialogFactory, runOnGranted, runOnDenied);
     }
   }
 }
