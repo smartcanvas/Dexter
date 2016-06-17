@@ -33,12 +33,12 @@ import android.view.ViewGroup;
  */
 public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultiplePermissionsListener {
 
-  private final ViewGroup rootView;
-  private final String text;
-  private final String buttonText;
-  private final View.OnClickListener onButtonClickListener;
-  private final Snackbar.Callback snackbarCallback;
-  private final SnackbarFactory snackbarFactory;
+  protected final ViewGroup rootView;
+  protected final String text;
+  protected final String buttonText;
+  protected final View.OnClickListener onButtonClickListener;
+  protected final Snackbar.Callback snackbarCallback;
+  protected final SnackbarFactory snackbarFactory;
 
   /**
    * @param rootView Parent view to show the snackbar
@@ -46,7 +46,7 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
    * @param buttonText Message displayed in the snackbar button
    * @param onButtonClickListener Action performed when the user clicks the snackbar button
    */
-  private SnackbarOnAnyDeniedMultiplePermissionsListener(ViewGroup rootView, String text,
+  protected SnackbarOnAnyDeniedMultiplePermissionsListener(ViewGroup rootView, String text,
       String buttonText, View.OnClickListener onButtonClickListener, Snackbar.Callback snackbarCallback, SnackbarFactory factory) {
     this.rootView = rootView;
     this.text = text;
@@ -64,7 +64,7 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
     }
   }
 
-  private void showSnackbar() {
+  protected void showSnackbar() {
     Snackbar snackbar = Snackbar.make(rootView, text, Snackbar.LENGTH_LONG);
     if (buttonText != null && onButtonClickListener != null) {
       snackbar.setAction(buttonText, onButtonClickListener);
@@ -85,14 +85,14 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
    * Non set fields will not be shown
    */
   public static class Builder {
-    private final ViewGroup rootView;
-    private final String text;
-    private String buttonText;
-    private View.OnClickListener onClickListener;
-    private Snackbar.Callback snackbarCallback;
-    private SnackbarFactory snackbarFactory;
+    protected final ViewGroup rootView;
+    protected final String text;
+    protected String buttonText;
+    protected View.OnClickListener onClickListener;
+    protected Snackbar.Callback snackbarCallback;
+    protected SnackbarFactory snackbarFactory;
 
-    private Builder(ViewGroup rootView, String text) {
+    protected Builder(ViewGroup rootView, String text) {
       this.rootView = rootView;
       this.text = text;
     }

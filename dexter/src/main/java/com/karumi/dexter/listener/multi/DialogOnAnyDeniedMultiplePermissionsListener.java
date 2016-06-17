@@ -32,14 +32,14 @@ import android.support.annotation.StringRes;
  */
 public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultiplePermissionsListener {
 
-  private final Context context;
-  private final String title;
-  private final String message;
-  private final String positiveButtonText;
-  private final Drawable icon;
-  private final DialogFactory dialogFactory;
+  protected final Context context;
+  protected final String title;
+  protected final String message;
+  protected final String positiveButtonText;
+  protected final Drawable icon;
+  protected final DialogFactory dialogFactory;
 
-  private DialogOnAnyDeniedMultiplePermissionsListener(Context context, String title,
+  protected DialogOnAnyDeniedMultiplePermissionsListener(Context context, String title,
       String message, String positiveButtonText, Drawable icon, DialogFactory factory) {
     this.context = context;
     this.title = title;
@@ -57,7 +57,7 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
     }
   }
 
-  private void showDialog() {
+  protected void showDialog() {
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context)
             .setTitle(title)
             .setMessage(message)
@@ -81,14 +81,14 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
    * Non set fields will be initialized to an empty string.
    */
   public static class Builder {
-    private final Context context;
-    private String title;
-    private String message;
-    private String buttonText;
-    private Drawable icon;
-    private DialogFactory dialogFactory;
+    protected final Context context;
+    protected String title;
+    protected String message;
+    protected String buttonText;
+    protected Drawable icon;
+    protected DialogFactory dialogFactory;
 
-    private Builder(Context context) {
+    protected Builder(Context context) {
       this.context = context;
     }
 
@@ -145,6 +145,7 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
       String title = this.title == null ? "" : this.title;
       String message = this.message == null ? "" : this.message;
       String buttonText = this.buttonText == null ? "" : this.buttonText;
+
       return new DialogOnAnyDeniedMultiplePermissionsListener(context, title, message, buttonText, icon, dialogFactory);
     }
   }
