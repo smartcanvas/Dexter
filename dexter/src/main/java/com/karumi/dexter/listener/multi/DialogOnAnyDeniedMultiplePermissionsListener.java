@@ -57,7 +57,7 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
     }
   }
 
-  protected void showDialog() {
+  public void showDialog() {
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context)
             .setTitle(title)
             .setMessage(message)

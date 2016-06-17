@@ -54,7 +54,7 @@ public class DialogOnDeniedPermissionListener extends EmptyPermissionListener {
     showDialog();
   }
 
-  protected void showDialog() {
+  public void showDialog() {
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context)
             .setTitle(title)
             .setMessage(message)

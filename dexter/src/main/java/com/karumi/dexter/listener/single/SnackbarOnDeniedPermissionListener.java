@@ -62,7 +62,7 @@ public class SnackbarOnDeniedPermissionListener extends EmptyPermissionListener 
     showSnackbar();
   }
 
-  protected void showSnackbar() {
+  public void showSnackbar() {
     Snackbar snackbar = Snackbar.make(rootView, text, Snackbar.LENGTH_LONG);
     if (buttonText != null && onButtonClickListener != null) {
       snackbar.setAction(buttonText, onButtonClickListener);
