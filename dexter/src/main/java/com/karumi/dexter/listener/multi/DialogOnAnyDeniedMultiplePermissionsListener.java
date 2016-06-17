@@ -16,6 +16,8 @@
 
 package com.karumi.dexter.listener.multi;
 
+import com.karumi.dexter.MultiplePermissionsReport;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -23,7 +25,6 @@ import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
-import com.karumi.dexter.MultiplePermissionsReport;
 
 /**
  * Utility listener that shows a {@link Dialog} with a minimum configuration when the user rejects
@@ -36,14 +37,16 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
   private final String message;
   private final String positiveButtonText;
   private final Drawable icon;
+  private final DialogFactory dialogFactory;
 
   private DialogOnAnyDeniedMultiplePermissionsListener(Context context, String title,
-      String message, String positiveButtonText, Drawable icon) {
+      String message, String positiveButtonText, Drawable icon, DialogFactory factory) {
     this.context = context;
     this.title = title;
     this.message = message;
     this.positiveButtonText = positiveButtonText;
     this.icon = icon;
+    this.dialogFactory = factory;
   }
 
   @Override public void onPermissionsChecked(MultiplePermissionsReport report) {
@@ -55,16 +58,22 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
   }
 
   private void showDialog() {
-    new AlertDialog.Builder(context)
-        .setTitle(title)
-        .setMessage(message)
-        .setPositiveButton(positiveButtonText, new DialogInterface.OnClickListener() {
-          @Override public void onClick(DialogInterface dialog, int which) {
-            dialog.dismiss();
-          }
-        })
-        .setIcon(icon)
-        .show();
+    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(positiveButtonText, new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+              }
+            })
+            .setIcon(icon);
+
+    if(dialogFactory != null) {
+      dialogFactory.showDialog(dialogBuilder);
+    } else {
+      dialogBuilder.show();
+    }
   }
 
   /**
@@ -77,6 +86,7 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
     private String message;
     private String buttonText;
     private Drawable icon;
+    private DialogFactory dialogFactory;
 
     private Builder(Context context) {
       this.context = context;
@@ -126,11 +136,21 @@ public class DialogOnAnyDeniedMultiplePermissionsListener extends EmptyMultipleP
       return this;
     }
 
+    public Builder withDialogFactory(DialogFactory factory) {
+      this.dialogFactory = factory;
+      return this;
+    }
+
     public DialogOnAnyDeniedMultiplePermissionsListener build() {
       String title = this.title == null ? "" : this.title;
       String message = this.message == null ? "" : this.message;
       String buttonText = this.buttonText == null ? "" : this.buttonText;
-      return new DialogOnAnyDeniedMultiplePermissionsListener(context, title, message, buttonText, icon);
+      return new DialogOnAnyDeniedMultiplePermissionsListener(context, title, message, buttonText, icon, dialogFactory);
     }
+  }
+
+  public interface DialogFactory {
+
+    void showDialog(AlertDialog.Builder dialogBuilder);
   }
 }

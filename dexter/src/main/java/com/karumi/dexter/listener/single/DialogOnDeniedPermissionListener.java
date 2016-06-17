@@ -16,13 +16,14 @@
 
 package com.karumi.dexter.listener.single;
 
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
 
 /**
  * Utility listener that shows a {@link android.app.Dialog} with a minimum configuration when the
@@ -35,29 +36,41 @@ public class DialogOnDeniedPermissionListener extends EmptyPermissionListener {
   private final String message;
   private final String positiveButtonText;
   private final Drawable icon;
+  private final DialogFactory dialogFactory;
 
   private DialogOnDeniedPermissionListener(Context context, String title, String message,
-      String positiveButtonText, Drawable icon) {
+      String positiveButtonText, Drawable icon, DialogFactory factory) {
     this.context = context;
     this.title = title;
     this.message = message;
     this.positiveButtonText = positiveButtonText;
     this.icon = icon;
+    this.dialogFactory = factory;
   }
 
   @Override public void onPermissionDenied(PermissionDeniedResponse response) {
     super.onPermissionDenied(response);
 
-    new AlertDialog.Builder(context)
-        .setTitle(title)
-        .setMessage(message)
-        .setPositiveButton(positiveButtonText, new DialogInterface.OnClickListener() {
-          @Override public void onClick(DialogInterface dialog, int which) {
-            dialog.dismiss();
-          }
-        })
-        .setIcon(icon)
-        .show();
+    showDialog();
+  }
+
+  private void showDialog() {
+    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(positiveButtonText, new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+              }
+            })
+            .setIcon(icon);
+
+    if(dialogFactory != null) {
+      dialogFactory.showDialog(dialogBuilder);
+    } else {
+      dialogBuilder.show();
+    }
   }
 
   /**
@@ -70,6 +83,7 @@ public class DialogOnDeniedPermissionListener extends EmptyPermissionListener {
     private String message;
     private String buttonText;
     private Drawable icon;
+    private DialogFactory dialogFactory;
 
     private Builder(Context context) {
       this.context = context;
@@ -119,11 +133,21 @@ public class DialogOnDeniedPermissionListener extends EmptyPermissionListener {
       return this;
     }
 
+    public Builder withDialogFactory(DialogFactory factory) {
+      this.dialogFactory = factory;
+      return this;
+    }
+
     public DialogOnDeniedPermissionListener build() {
       String title = this.title == null ? "" : this.title;
       String message = this.message == null ? "" : this.message;
       String buttonText = this.buttonText == null ? "" : this.buttonText;
-      return new DialogOnDeniedPermissionListener(context, title, message, buttonText, icon);
+      return new DialogOnDeniedPermissionListener(context, title, message, buttonText, icon, dialogFactory);
     }
+  }
+
+  public interface DialogFactory {
+
+    void showDialog(AlertDialog.Builder dialogBuilder);
   }
 }

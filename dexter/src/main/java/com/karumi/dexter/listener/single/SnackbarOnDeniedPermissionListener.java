@@ -16,6 +16,8 @@
 
 package com.karumi.dexter.listener.single;
 
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -24,7 +26,6 @@ import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.view.ViewGroup;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
 
 /**
  * Utility listener that shows a {@link Snackbar} with a custom text whenever a permission has been
@@ -37,6 +38,7 @@ public class SnackbarOnDeniedPermissionListener extends EmptyPermissionListener 
   private final String buttonText;
   private final View.OnClickListener onButtonClickListener;
   private final Snackbar.Callback snackbarCallback;
+  private final SnackbarFactory snackbarFactory;
 
   /**
    * @param rootView Parent view to show the snackbar
@@ -45,12 +47,13 @@ public class SnackbarOnDeniedPermissionListener extends EmptyPermissionListener 
    * @param onButtonClickListener Action performed when the user clicks the snackbar button
    */
   private SnackbarOnDeniedPermissionListener(ViewGroup rootView, String text, String buttonText,
-      View.OnClickListener onButtonClickListener, Snackbar.Callback snackbarCallback) {
+      View.OnClickListener onButtonClickListener, Snackbar.Callback snackbarCallback, SnackbarFactory factory) {
     this.rootView = rootView;
     this.text = text;
     this.buttonText = buttonText;
     this.onButtonClickListener = onButtonClickListener;
     this.snackbarCallback = snackbarCallback;
+    this.snackbarFactory = factory;
   }
 
   @Override public void onPermissionDenied(PermissionDeniedResponse response) {
@@ -63,7 +66,12 @@ public class SnackbarOnDeniedPermissionListener extends EmptyPermissionListener 
     if (snackbarCallback != null) {
       snackbar.setCallback(snackbarCallback);
     }
-    snackbar.show();
+
+    if (snackbarFactory != null) {
+      snackbarFactory.showSnackbar(snackbar);
+    } else {
+      snackbar.show();
+    }
   }
 
   /**
@@ -76,6 +84,7 @@ public class SnackbarOnDeniedPermissionListener extends EmptyPermissionListener 
     private String buttonText;
     private View.OnClickListener onClickListener;
     private Snackbar.Callback snackbarCallback;
+    private SnackbarFactory snackbarFactory;
 
     private Builder(ViewGroup rootView, String text) {
       this.rootView = rootView;
@@ -141,10 +150,23 @@ public class SnackbarOnDeniedPermissionListener extends EmptyPermissionListener 
     }
 
     /**
+     * Adds a factor to handle the snackbar.
+     */
+    public Builder withSnackbarFactory(SnackbarFactory factory) {
+      this.snackbarFactory = factory;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@link SnackbarOnDeniedPermissionListener}
      */
     public SnackbarOnDeniedPermissionListener build() {
-      return new SnackbarOnDeniedPermissionListener(rootView, text, buttonText, onClickListener, snackbarCallback);
+      return new SnackbarOnDeniedPermissionListener(rootView, text, buttonText, onClickListener, snackbarCallback, snackbarFactory);
     }
+  }
+
+  public interface SnackbarFactory {
+
+    void showSnackbar(Snackbar snackbar);
   }
 }

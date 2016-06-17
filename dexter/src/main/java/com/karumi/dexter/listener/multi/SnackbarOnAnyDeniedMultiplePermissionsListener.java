@@ -16,6 +16,8 @@
 
 package com.karumi.dexter.listener.multi;
 
+import com.karumi.dexter.MultiplePermissionsReport;
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -24,7 +26,6 @@ import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.view.ViewGroup;
-import com.karumi.dexter.MultiplePermissionsReport;
 
 /**
  * Utility listener that shows a {@link Snackbar} with a custom text whenever a permission has been
@@ -37,6 +38,7 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
   private final String buttonText;
   private final View.OnClickListener onButtonClickListener;
   private final Snackbar.Callback snackbarCallback;
+  private final SnackbarFactory snackbarFactory;
 
   /**
    * @param rootView Parent view to show the snackbar
@@ -45,12 +47,13 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
    * @param onButtonClickListener Action performed when the user clicks the snackbar button
    */
   private SnackbarOnAnyDeniedMultiplePermissionsListener(ViewGroup rootView, String text,
-      String buttonText, View.OnClickListener onButtonClickListener, Snackbar.Callback snackbarCallback) {
+      String buttonText, View.OnClickListener onButtonClickListener, Snackbar.Callback snackbarCallback, SnackbarFactory factory) {
     this.rootView = rootView;
     this.text = text;
     this.buttonText = buttonText;
     this.onButtonClickListener = onButtonClickListener;
     this.snackbarCallback = snackbarCallback;
+    this.snackbarFactory = factory;
   }
 
   @Override public void onPermissionsChecked(MultiplePermissionsReport report) {
@@ -69,7 +72,12 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
     if (snackbarCallback != null) {
       snackbar.setCallback(snackbarCallback);
     }
-    snackbar.show();
+
+    if (snackbarFactory != null) {
+      snackbarFactory.showSnackbar(snackbar);
+    } else {
+      snackbar.show();
+    }
   }
 
   /**
@@ -82,6 +90,7 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
     private String buttonText;
     private View.OnClickListener onClickListener;
     private Snackbar.Callback snackbarCallback;
+    private SnackbarFactory snackbarFactory;
 
     private Builder(ViewGroup rootView, String text) {
       this.rootView = rootView;
@@ -147,11 +156,23 @@ public class SnackbarOnAnyDeniedMultiplePermissionsListener extends EmptyMultipl
     }
 
     /**
+     * Adds a factor to handle the snackbar.
+     */
+    public Builder withSnackbarFactory(SnackbarFactory factory) {
+      this.snackbarFactory = factory;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@link SnackbarOnAnyDeniedMultiplePermissionsListener}
      */
     public SnackbarOnAnyDeniedMultiplePermissionsListener build() {
-      return new SnackbarOnAnyDeniedMultiplePermissionsListener(rootView, text, buttonText, onClickListener,
-              snackbarCallback);
+      return new SnackbarOnAnyDeniedMultiplePermissionsListener(rootView, text, buttonText, onClickListener, snackbarCallback, snackbarFactory);
     }
+  }
+
+  public interface SnackbarFactory {
+
+    void showSnackbar(Snackbar snackbar);
   }
 }
