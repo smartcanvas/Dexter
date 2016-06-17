@@ -126,12 +126,12 @@ public class RationaleDialogOnAnyDeniedMultiplePermissionsListener extends Dialo
       return this;
     }
 
-    public Builder withRunnableOnGranted(Runnable runOnGranted) {
+    public Builder runOnGranted(Runnable runOnGranted) {
       this.runOnGranted = runOnGranted;
       return this;
     }
 
-    public Builder withRunnableOnDenied(Runnable runOnDenied) {
+    public Builder runOnDenied(Runnable runOnDenied) {
       this.runOnDenied = runOnDenied;
       return this;
     }

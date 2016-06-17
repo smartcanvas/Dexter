@@ -149,12 +149,12 @@ public class RationaleSnackbarOnDeniedPermissionListener extends SnackbarOnDenie
       return this;
     }
 
-    public Builder withRunnableOnGranted(Runnable runOnGranted) {
+    public Builder runOnGranted(Runnable runOnGranted) {
       this.runOnGranted = runOnGranted;
       return this;
     }
 
-    public Builder withRunnableOnDenied(Runnable runOnGranted) {
+    public Builder runOnDenied(Runnable runOnGranted) {
       this.runOnDenied = runOnDenied;
       return this;
     }
