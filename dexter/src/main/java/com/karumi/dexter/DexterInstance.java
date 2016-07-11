@@ -16,10 +16,6 @@
 
 package com.karumi.dexter;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import com.karumi.dexter.listener.DexterError;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
@@ -27,7 +23,12 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.EmptyMultiplePermissionsListener;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.karumi.dexter.listener.single.PermissionListener;
-import java.lang.ref.WeakReference;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -44,7 +45,8 @@ final class DexterInstance {
   private static final MultiplePermissionsListener EMPTY_LISTENER =
       new EmptyMultiplePermissionsListener();
 
-  private final WeakReference<Context> context;
+  private Context context;
+  
   private final AndroidPermissionService androidPermissionService;
   private final IntentProvider intentProvider;
   private final Collection<String> pendingPermissions;
@@ -59,7 +61,8 @@ final class DexterInstance {
 
   DexterInstance(Context context, AndroidPermissionService androidPermissionService,
       IntentProvider intentProvider) {
-    this.context = new WeakReference<>(context);
+    this.context = context;
+    
     this.androidPermissionService = androidPermissionService;
     this.intentProvider = intentProvider;
     this.pendingPermissions = new TreeSet<>();
@@ -188,6 +191,10 @@ final class DexterInstance {
     isShowingNativeDialog.set(true);
   }
 
+  void updateContext(Context context) {
+    this.context = context;
+  }
+
   private PermissionStates getPermissionStates(Collection<String> pendingPermissions) {
     PermissionStates permissionStates = new PermissionStates();
 
@@ -208,12 +215,13 @@ final class DexterInstance {
   }
 
   private void startTransparentActivityIfNeeded() {
-    if (context.get() == null) {
-      return;
+    if (context != null) {
+      Intent intent = intentProvider.get(context, DexterActivity.class);
+      if (!(context instanceof Activity)) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      }
+      context.startActivity(intent);
     }
-
-    Intent intent = intentProvider.get(context.get(), DexterActivity.class);
-    context.get().startActivity(intent);
   }
 
   private void handleDeniedPermissions(Collection<String> permissions) {
@@ -301,7 +309,7 @@ final class DexterInstance {
     checkNoDexterRequestOngoing();
     checkRequestSomePermission(permissions);
 
-    if (context.get() == null) {
+    if (context == null) {
       return;
     }
 
@@ -309,7 +317,7 @@ final class DexterInstance {
     pendingPermissions.addAll(permissions);
     multiplePermissionsReport.clear();
     this.listener = new MultiplePermissionListenerThreadDecorator(listener, thread);
-    if (isEveryPermissionGranted(permissions, context.get()) && isContextInstanceOfActivity()) {
+    if (isEveryPermissionGranted(permissions, context) && isContextInstanceOfActivity()) {
       thread.execute(new Runnable() {
         @Override public void run() {
           MultiplePermissionsReport report = new MultiplePermissionsReport();
@@ -331,7 +339,7 @@ final class DexterInstance {
    * at some point if the context instance is an instance of {@link android.app.Activity}.
    */
   private boolean isContextInstanceOfActivity() {
-    return context.get() != null && context.get() instanceof Activity;
+    return context != null && context instanceof Activity;
   }
 
   private boolean isEveryPermissionGranted(Collection<String> permissions, Context context) {
@@ -343,7 +351,7 @@ final class DexterInstance {
     }
     return true;
   }
-
+  
   private final class PermissionStates {
     private final Collection<String> deniedPermissions = new LinkedList<>();
     private final Collection<String> grantedPermissions = new LinkedList<>();

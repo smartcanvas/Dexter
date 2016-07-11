@@ -16,13 +16,15 @@
 
 package com.karumi.dexter;
 
-import android.app.Activity;
-import android.content.Context;
 import com.karumi.dexter.listener.EmptyPermissionRequestErrorListener;
 import com.karumi.dexter.listener.PermissionRequestErrorListener;
 import com.karumi.dexter.listener.multi.EmptyMultiplePermissionsListener;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.karumi.dexter.listener.single.PermissionListener;
+
+import android.app.Activity;
+import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -145,7 +147,18 @@ public final class Dexter
       AndroidPermissionService androidPermissionService = new AndroidPermissionService();
       IntentProvider intentProvider = new IntentProvider();
       instance = new DexterInstance(activity, androidPermissionService, intentProvider);
+    } else {
+      instance.updateContext(activity);
     }
+  }
+
+  /**
+   * Clear instance of the library.
+   *
+   * @deprecated Use the non static constructor: new Dexter(Activity activity)
+   */
+  @Deprecated public static void clearInstance() {
+    instance = null;
   }
 
   /**
